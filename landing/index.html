@@ -1,0 +1,90 @@
+# AGENTS.md — Persian Transcriber
+
+## Project identity
+
+Persian Transcriber is a bilingual Persian/English, open-source,
+privacy-first speech-to-text project created by Seyed Mohammad Mosallaei.
+
+The planned clients are Android, iOS, Windows, macOS, and a PWA.
+Native inference and browser inference have different implementations:
+native bindings/FFI versus WebAssembly and Web Workers.
+
+This repository is intended to be fully open source, not open-core.
+Our own source code is intended for release under Apache-2.0. Add the
+complete canonical LICENSE file and required third-party notices before
+a public release. Check the license of every dependency and model
+individually. Apache-2.0 does not itself grant trademark rights.
+
+## Non-negotiable product rules
+
+- Never send user audio or transcripts to a transcription server.
+- Do not add analytics, telemetry, ad SDKs, tracking pixels, remote
+  fonts, or third-party embeds to the landing page or client.
+- A necessary download of the app or model is not the same as uploading
+  user audio. Describe this distinction accurately.
+- Say "offline after initial setup" when the app/model must first be
+  downloaded. Do not describe visiting the website as air-gapped.
+- Do not claim that open-source code, Apache-2.0, or local processing
+  alone guarantees security.
+- Do not publish unmeasured claims about accuracy, speed, RAM usage,
+  subtitle timing, or supported media formats.
+- Do not call standard multilingual Whisper weights a custom
+  Persian-trained model.
+- Do not assume a native binary or Dart FFI runs inside a browser.
+- Decode/prepare audio into the required format before feeding
+  components that need it; do not present VAD as universally preceding
+  audio decoding.
+- Do not treat legacy FFmpegKit as an approved maintained dependency.
+
+## Landing-page scope
+
+The landing page lives in apps/landing and uses plain HTML, CSS, and
+vanilla JavaScript for the initial scaffold. Avoid adding a framework
+or build pipeline without a concrete need.
+
+Required visible areas:
+- Header with Persian/English switch
+- Hero with Google Play, App Store, and web-app/PWA CTAs
+- Concise privacy and architecture explanations
+- About/creator attribution and contact path
+- A clear statement of availability and browser limitations
+
+The initial page is a pre-release page. Do not invent store listings,
+a working /app route, a GitHub repository URL, wallet addresses, or
+payment-gateway URLs.
+
+Store CTAs may show a "Coming soon" information dialog. Do not collect
+email addresses until a self-hosted submission endpoint, consent text,
+storage/retention policy, and privacy-policy update actually exist.
+
+The web-app CTA must remain disabled until a real deployed app URL is
+configured. Once available, the CTA should open the app; installation
+instructions and browser-specific install behavior belong in a
+subsequent, tested implementation.
+
+Only publish BTC/USDT addresses after the owner confirms the exact
+address and network. Only publish GitHub Sponsors and rial-gateway
+links after those destinations exist.
+
+## Internationalization and accessibility
+
+- Persian is the initial language; English is selectable.
+- Update the root HTML `lang` and `dir` attributes together.
+- Translate visible text, page title, description, and control labels.
+- Use CSS logical properties rather than duplicating RTL/LTR layouts.
+- Preserve keyboard navigation, visible focus, semantic landmarks,
+  accessible dialogs, and reduced-motion preferences.
+- Do not put untrusted strings into `innerHTML`; use `textContent`.
+- Store language preference locally when storage is available.
+
+## Implementation discipline
+
+- Work in small, reviewable changes; preserve the agreed product scope.
+- Do not add a PWA manifest or service worker merely to make the
+  landing page appear installable. The actual app needs its own tested
+  offline and model-cache strategy.
+- Keep the landing page functional without external CDNs.
+- Before completing a change, test both languages, mobile layout,
+  keyboard navigation, all three CTA states, and missing-link behavior.
+- Document unresolved integration points instead of masking them with
+  placeholder URLs or nonfunctional submit buttons.
