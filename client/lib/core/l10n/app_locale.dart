@@ -54,4 +54,57 @@ class AppStrings {
 
   static String clearText(AppLanguage lang) =>
       lang == AppLanguage.persian ? 'پاک‌سازی' : 'Clear';
+
+  static String checkingEngine(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'در حال آماده‌سازی موتور محلی...'
+      : 'Preparing the local engine...';
+
+  static String checkingModel(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'در حال بررسی مدل محلی...'
+          : 'Checking the local model...';
+
+  static String preparingAudio(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'در حال آماده‌سازی صوت...'
+      : 'Preparing audio...';
+
+  static String loadingModel(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'در حال بارگذاری مدل...'
+      : 'Loading the model...';
+
+  static String transcribing(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'در حال رونویسی...'
+      : 'Transcribing...';
+
+  static String cleaningUp(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'در حال پاک‌سازی فایل‌های موقت...'
+      : 'Cleaning up temporary files...';
+
+  static String transcriptionCompleted(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'رونویسی کامل شد.'
+          : 'Transcription complete.';
+
+  static String transcriptionCancelled(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'رونویسی لغو شد.'
+          : 'Transcription cancelled.';
+
+  static String transcriptionFailed(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'رونویسی ناموفق بود.'
+          : 'Transcription failed.';
+
+  static String engineUnavailable(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'موتور رونویسی محلی در این نسخه هنوز فعال نیست.'
+          : 'The local transcription engine is not available in this build.';
+
+  static String engineNotReady(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'موتور رونویسی آماده نیست.'
+      : 'The transcription engine is not ready.';
+
+  static String copySuccess(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'متن در کلیپ‌بورد کپی شد.'
+      : 'Text copied to clipboard.';
 }

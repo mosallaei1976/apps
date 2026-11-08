@@ -5,12 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/l10n/app_locale.dart';
 import 'core/theme/app_theme.dart';
 import 'features/transcriber/presentation/transcriber_screen.dart';
+import 'features/transcriber/presentation/transcription_providers.dart';
+import 'platform/transcription_runtime.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    const ProviderScope(
-      child: PersianTranscriberApp(),
+    ProviderScope(
+      overrides: [
+        transcriptionCoordinatorProvider
+            .overrideWith(createTranscriptionCoordinator),
+      ],
+      child: const PersianTranscriberApp(),
     ),
   );
 }

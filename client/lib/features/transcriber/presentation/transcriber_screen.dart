@@ -3,30 +3,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_locale.dart';
+import '../application/transcription_job_event.dart';
+import '../domain/engine/engine_failure.dart';
+import '../domain/engine/engine_types.dart';
+import 'transcription_providers.dart';
+import 'transcription_session_controller.dart';
 
-class TranscriberScreen extends ConsumerStatefulWidget {
+class TranscriberScreen extends ConsumerWidget {
   const TranscriberScreen({super.key});
 
   @override
-  ConsumerState<TranscriberScreen> createState() => _TranscriberScreenState();
-}
-
-class _TranscriberScreenState extends ConsumerState<TranscriberScreen> {
-  bool _isRecording = false;
-  String _transcribedText = "";
-
-  void _toggleRecording() {
-    setState(() {
-      _isRecording = !_isRecording;
-      if (_isRecording) {
-        _transcribedText = "در حال ضبط و پردازش آفلاین در حافظه موقت (RAM)...";
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final currentLang = ref.watch(localeProvider);
+    final session = ref.watch(transcriptionSessionProvider);
+    final controller = ref.read(transcriptionSessionProvider.notifier);
+    final transcript = session.transcriptText;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,6 +60,10 @@ class _TranscriberScreenState extends ConsumerState<TranscriberScreen> {
                   ],
                 ),
               ),
+              if (session.showsStatus) ...[
+                const SizedBox(height: 12),
+                _SessionStatus(language: currentLang, session: session),
+              ],
               const SizedBox(height: 16),
 
               // باکس متن خروجی رونویسی
@@ -78,13 +73,13 @@ class _TranscriberScreenState extends ConsumerState<TranscriberScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: SingleChildScrollView(
                       child: SelectableText(
-                        _transcribedText.isEmpty
+                        transcript.isEmpty
                             ? AppStrings.emptyTranscription(currentLang)
-                            : _transcribedText,
+                            : transcript,
                         style: TextStyle(
                           fontSize: 16,
                           height: 1.8,
-                          color: _transcribedText.isEmpty ? Colors.grey : Colors.white,
+                          color: transcript.isEmpty ? Colors.grey : Colors.white,
                         ),
                       ),
                     ),
@@ -98,22 +93,24 @@ class _TranscriberScreenState extends ConsumerState<TranscriberScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: _transcribedText.isEmpty
+                    onPressed: transcript.isEmpty || session.isActive
                         ? null
-                        : () => setState(() => _transcribedText = ""),
+                        : controller.clearTranscript,
                     icon: const Icon(Icons.clear_all, size: 18),
                     label: Text(AppStrings.clearText(currentLang)),
                   ),
                   const SizedBox(width: 12),
                   FilledButton.tonalIcon(
-                    onPressed: _transcribedText.isEmpty
+                    onPressed: transcript.isEmpty
                         ? null
                         : () {
-                            Clipboard.setData(ClipboardData(text: _transcribedText));
+                            Clipboard.setData(ClipboardData(text: transcript));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('متن در کلیپ‌بورد کپی شد.'),
-                                duration: Duration(seconds: 2),
+                              SnackBar(
+                                content: Text(
+                                  AppStrings.copySuccess(currentLang),
+                                ),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           },
@@ -127,11 +124,19 @@ class _TranscriberScreenState extends ConsumerState<TranscriberScreen> {
               // کلید ضبط اصلی
               Center(
                 child: FloatingActionButton.extended(
-                  onPressed: _toggleRecording,
-                  backgroundColor: _isRecording ? Colors.redAccent : Colors.teal,
-                  icon: Icon(_isRecording ? Icons.stop : Icons.mic),
+                  onPressed: session.isActive
+                      ? () {
+                          controller.cancel();
+                        }
+                      : () => controller.start(
+                            sourceId: 'microphone',
+                            tier: ModelTier.fast,
+                          ),
+                  backgroundColor:
+                      session.isActive ? Colors.redAccent : Colors.teal,
+                  icon: Icon(session.isActive ? Icons.stop : Icons.mic),
                   label: Text(
-                    _isRecording
+                    session.isActive
                         ? AppStrings.stopRecording(currentLang)
                         : AppStrings.startRecording(currentLang),
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -144,4 +149,117 @@ class _TranscriberScreenState extends ConsumerState<TranscriberScreen> {
       ),
     );
   }
+}
+
+class _SessionStatus extends StatelessWidget {
+  const _SessionStatus({
+    required this.language,
+    required this.session,
+  });
+
+  final AppLanguage language;
+  final TranscriptionSessionState session;
+
+  @override
+  Widget build(BuildContext context) {
+    final failure = session.failure;
+    final color = switch (session.phase) {
+      TranscriptionPhase.failed => Colors.redAccent,
+      TranscriptionPhase.cancelled => Colors.amber,
+      TranscriptionPhase.completed => Colors.tealAccent,
+      _ => Colors.teal,
+    };
+    final icon = switch (session.phase) {
+      TranscriptionPhase.failed => Icons.error_outline,
+      TranscriptionPhase.cancelled => Icons.cancel_outlined,
+      TranscriptionPhase.completed => Icons.check_circle_outline,
+      _ => Icons.graphic_eq,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              if (session.isActive)
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: color,
+                  ),
+                )
+              else
+                Icon(icon, color: color, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _statusText(language, session),
+                  style: TextStyle(fontSize: 12, color: color),
+                ),
+              ),
+            ],
+          ),
+          if (failure != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              failure.message,
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ],
+          if (session.isActive) ...[
+            const SizedBox(height: 10),
+            LinearProgressIndicator(
+              value: session.progress,
+              minHeight: 4,
+              color: color,
+              backgroundColor: color.withValues(alpha: 0.15),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+String _statusText(
+  AppLanguage language,
+  TranscriptionSessionState session,
+) {
+  final failure = session.failure;
+  if (failure != null) {
+    return switch (failure.code) {
+      EngineFailureCode.unsupported => AppStrings.engineUnavailable(language),
+      EngineFailureCode.notReady => AppStrings.engineNotReady(language),
+      _ => AppStrings.transcriptionFailed(language),
+    };
+  }
+
+  return switch (session.phase) {
+    TranscriptionPhase.completed =>
+      AppStrings.transcriptionCompleted(language),
+    TranscriptionPhase.cancelled =>
+      AppStrings.transcriptionCancelled(language),
+    TranscriptionPhase.failed => AppStrings.transcriptionFailed(language),
+    _ => switch (session.stage) {
+        TranscriptionStage.checkingReadiness =>
+          AppStrings.checkingEngine(language),
+        TranscriptionStage.resolvingModel => AppStrings.checkingModel(language),
+        TranscriptionStage.preparingAudio =>
+          AppStrings.preparingAudio(language),
+        TranscriptionStage.loadingModel => AppStrings.loadingModel(language),
+        TranscriptionStage.transcribing => AppStrings.transcribing(language),
+        TranscriptionStage.cleaningUp => AppStrings.cleaningUp(language),
+        null => AppStrings.startRecording(language),
+      },
+  };
 }
