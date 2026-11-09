@@ -6,6 +6,7 @@ import 'core/l10n/app_locale.dart';
 import 'core/theme/app_theme.dart';
 import 'features/transcriber/presentation/transcriber_screen.dart';
 import 'features/transcriber/presentation/transcription_providers.dart';
+import 'platform/audio_capture_runtime.dart';
 import 'platform/transcription_runtime.dart';
 
 void main() {
@@ -15,6 +16,7 @@ void main() {
       overrides: [
         transcriptionCoordinatorProvider
             .overrideWith(createTranscriptionCoordinator),
+        audioCaptureProvider.overrideWith(createAudioCapture),
       ],
       child: const PersianTranscriberApp(),
     ),

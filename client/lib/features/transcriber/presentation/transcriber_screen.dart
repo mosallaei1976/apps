@@ -124,21 +124,28 @@ class TranscriberScreen extends ConsumerWidget {
               // کلید ضبط اصلی
               Center(
                 child: FloatingActionButton.extended(
-                  onPressed: session.isActive
+                  onPressed: session.isRecording
                       ? () {
-                          controller.cancel();
+                          controller.stopRecording();
                         }
-                      : () => controller.start(
-                            sourceId: 'microphone',
-                            tier: ModelTier.fast,
-                          ),
+                      : session.isProcessing
+                          ? () {
+                              controller.cancel();
+                            }
+                          : () {
+                              controller.startRecording(
+                                tier: ModelTier.fast,
+                              );
+                            },
                   backgroundColor:
                       session.isActive ? Colors.redAccent : Colors.teal,
                   icon: Icon(session.isActive ? Icons.stop : Icons.mic),
                   label: Text(
-                    session.isActive
+                    session.isRecording
                         ? AppStrings.stopRecording(currentLang)
-                        : AppStrings.startRecording(currentLang),
+                        : session.isProcessing
+                            ? AppStrings.cancelTranscription(currentLang)
+                            : AppStrings.startRecording(currentLang),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -164,12 +171,14 @@ class _SessionStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     final failure = session.failure;
     final color = switch (session.phase) {
+      TranscriptionPhase.recording => Colors.redAccent,
       TranscriptionPhase.failed => Colors.redAccent,
       TranscriptionPhase.cancelled => Colors.amber,
       TranscriptionPhase.completed => Colors.tealAccent,
       _ => Colors.teal,
     };
     final icon = switch (session.phase) {
+      TranscriptionPhase.recording => Icons.mic,
       TranscriptionPhase.failed => Icons.error_outline,
       TranscriptionPhase.cancelled => Icons.cancel_outlined,
       TranscriptionPhase.completed => Icons.check_circle_outline,
@@ -188,7 +197,7 @@ class _SessionStatus extends StatelessWidget {
         children: [
           Row(
             children: [
-              if (session.isActive)
+              if (session.isProcessing)
                 SizedBox(
                   width: 18,
                   height: 18,
@@ -216,7 +225,7 @@ class _SessionStatus extends StatelessWidget {
               style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
           ],
-          if (session.isActive) ...[
+          if (session.isProcessing) ...[
             const SizedBox(height: 10),
             LinearProgressIndicator(
               value: session.progress,
@@ -240,11 +249,14 @@ String _statusText(
     return switch (failure.code) {
       EngineFailureCode.unsupported => AppStrings.engineUnavailable(language),
       EngineFailureCode.notReady => AppStrings.engineNotReady(language),
+      EngineFailureCode.permissionDenied =>
+        AppStrings.microphonePermissionDenied(language),
       _ => AppStrings.transcriptionFailed(language),
     };
   }
 
   return switch (session.phase) {
+    TranscriptionPhase.recording => AppStrings.recording(language),
     TranscriptionPhase.completed =>
       AppStrings.transcriptionCompleted(language),
     TranscriptionPhase.cancelled =>

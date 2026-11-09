@@ -2,11 +2,14 @@
 
 `TranscriptionCoordinator` depends only on the canonical engine and the two domain
 ports in `../domain/ports/`. Construct it with an engine, `AudioPreparation` and
-`VerifiedModelAccess`. Native builds now inject the trusted-manifest adapter from
-`../../platform/models`; audio preparation and inference adapters remain
-unavailable. The existing platform factory still returns explicitly unavailable
-engines. No fake is wired into production and the current visual UI remains
-unchanged.
+`VerifiedModelAccess`. Native builds inject the trusted-manifest adapter from
+`../../platform/models`; Windows microphone capture is injected separately into
+the session controller through `AudioCapture`. Audio preparation and inference
+adapters remain unavailable. No fake is wired into production; recording creates
+a real managed capture, but with the bundled empty manifest a job still stops at
+model resolution and reports `modelUnavailable`. Once a verified model is
+configured, the opaque capture ID reaches the unavailable preparation adapter and
+fails honestly.
 
 ## Port obligations
 
@@ -87,12 +90,14 @@ belongs to the composition root, so coordinator disposal does not dispose it.
 ## Functionality and validation
 
 Orchestration, leases, event forwarding/replacement, timestamp mapping and cleanup
-coordination are implemented and unit tested against controlled adapters. Real
-native FFI/WASM inference, audio-only FFmpeg preparation and worker cancellation
-are still needed before UI integration. Trusted local artifact resolution,
-resumable model downloads and verification now exist natively; the bundled
-manifest intentionally has no released profile yet. No database, server, network
-transcription or new platform engine implementation is introduced.
+coordination are implemented and unit tested against controlled adapters. Windows
+microphone capture is implemented behind `AudioCapture` with managed temporary
+files, but real audio-only FFmpeg preparation, native FFI/WASM inference and
+worker cancellation are still needed before end-to-end transcription. Trusted
+local artifact resolution, resumable model downloads and verification now exist
+natively; the bundled manifest intentionally has no released profile yet. No
+database, server, network transcription or new platform engine implementation is
+introduced.
 
 Run `flutter test --no-pub test/domain test/application test/platform` for the
 focused suite.

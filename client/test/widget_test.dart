@@ -6,11 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Widget buildApp() {
+import 'support/fake_audio_capture.dart';
+
+Widget buildApp({FakeAudioCapture? capture}) {
   return ProviderScope(
     overrides: [
       transcriptionCoordinatorProvider
           .overrideWith(createTranscriptionCoordinator),
+      audioCaptureProvider.overrideWithValue(capture ?? FakeAudioCapture()),
     ],
     child: const PersianTranscriberApp(),
   );
@@ -56,11 +59,19 @@ void main() {
     );
   });
 
-  testWidgets('microphone action surfaces the unavailable engine status',
+  testWidgets('recording stops, starts transcription and surfaces the unavailable engine',
       (tester) async {
-    await tester.pumpWidget(buildApp());
+    final capture = FakeAudioCapture();
+    await tester.pumpWidget(buildApp(capture: capture));
 
     await tester.tap(find.text('شروع ضبط و رونویسی'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('در حال ضبط از میکروفون...'), findsOneWidget);
+    expect(find.text('توقف ضبط'), findsOneWidget);
+    expect(capture.startCalls, 1);
+
+    await tester.tap(find.text('توقف ضبط'));
     await tester.pumpAndSettle();
 
     expect(
@@ -71,6 +82,34 @@ void main() {
       find.text('Native FFI inference has not been implemented or validated.'),
       findsOneWidget,
     );
+    expect(capture.stoppedIds, ['capture-0']);
+    expect(capture.discardedIds, ['capture-0']);
     expect(find.text('شروع ضبط و رونویسی'), findsOneWidget);
+  });
+
+  testWidgets('microphone permission denial is shown in both languages',
+      (tester) async {
+    final capture = FakeAudioCapture(permissionDenied: true);
+    await tester.pumpWidget(buildApp(capture: capture));
+
+    await tester.tap(find.text('شروع ضبط و رونویسی'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'دسترسی به میکروفون داده نشد. آن را در تنظیمات حریم خصوصی ویندوز فعال کنید.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byIcon(Icons.language));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Microphone access was denied. Enable it in Windows privacy settings.',
+      ),
+      findsOneWidget,
+    );
   });
 }

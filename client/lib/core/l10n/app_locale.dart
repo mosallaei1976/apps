@@ -44,6 +44,13 @@ class AppStrings {
   static String stopRecording(AppLanguage lang) =>
       lang == AppLanguage.persian ? 'توقف ضبط' : 'Stop Recording';
 
+  static String cancelTranscription(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'لغو رونویسی' : 'Cancel';
+
+  static String recording(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'در حال ضبط از میکروفون...'
+      : 'Recording from microphone...';
+
   static String emptyTranscription(AppLanguage lang) =>
       lang == AppLanguage.persian
           ? 'متن استخراج‌شده در اینجا نمایش داده می‌شود...'
@@ -103,6 +110,11 @@ class AppStrings {
   static String engineNotReady(AppLanguage lang) => lang == AppLanguage.persian
       ? 'موتور رونویسی آماده نیست.'
       : 'The transcription engine is not ready.';
+
+  static String microphonePermissionDenied(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'دسترسی به میکروفون داده نشد. آن را در تنظیمات حریم خصوصی ویندوز فعال کنید.'
+          : 'Microphone access was denied. Enable it in Windows privacy settings.';
 
   static String copySuccess(AppLanguage lang) => lang == AppLanguage.persian
       ? 'متن در کلیپ‌بورد کپی شد.'

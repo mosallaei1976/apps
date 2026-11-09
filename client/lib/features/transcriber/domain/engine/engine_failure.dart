@@ -9,6 +9,7 @@ enum EngineFailureCode {
   cancelled,
   invalidAudio,
   invalidRequest,
+  permissionDenied,
   unsupported,
   inferenceFailed,
   disposed,
