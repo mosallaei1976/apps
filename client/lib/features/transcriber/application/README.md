@@ -4,12 +4,14 @@
 ports in `../domain/ports/`. Construct it with an engine, `AudioPreparation` and
 `VerifiedModelAccess`. Native builds inject the trusted-manifest adapter from
 `../../platform/models`; Windows microphone capture is injected separately into
-the session controller through `AudioCapture`. Audio preparation and inference
-adapters remain unavailable. No fake is wired into production; recording creates
-a real managed capture, but with the bundled empty manifest a job still stops at
-model resolution and reports `modelUnavailable`. Once a verified model is
-configured, the opaque capture ID reaches the unavailable preparation adapter and
-fails honestly.
+the session controller through `AudioCapture`. Native audio preparation is
+injected only when an explicit local FFmpeg path and SHA-256 are configured;
+otherwise the composition root injects an explicit unavailable adapter. No fake
+is wired into production. Recording creates a real managed capture, but with the
+bundled empty manifest a job still stops at model resolution and reports
+`modelUnavailable`. Once a verified model is configured, the opaque capture ID
+reaches the FFmpeg preparation worker and produces canonical 16 kHz mono PCM WAV
+in the job scope.
 
 ## Port obligations
 
@@ -35,7 +37,8 @@ fails honestly.
   artifacts registered under that exact scope, including partially prepared
   audio. It must be safe even if preparation never started. It must never delete
   source media, exports, transcripts, installed models or resumable downloads.
-  Startup orphan recovery/cache expiry remain infrastructure responsibilities.
+  Startup orphan recovery/cache expiry are implemented by the native preparation
+  adapter through a 24-hour job-scope sweep.
 
 ## Job semantics
 
@@ -92,12 +95,14 @@ belongs to the composition root, so coordinator disposal does not dispose it.
 Orchestration, leases, event forwarding/replacement, timestamp mapping and cleanup
 coordination are implemented and unit tested against controlled adapters. Windows
 microphone capture is implemented behind `AudioCapture` with managed temporary
-files, but real audio-only FFmpeg preparation, native FFI/WASM inference and
-worker cancellation are still needed before end-to-end transcription. Trusted
-local artifact resolution, resumable model downloads and verification now exist
-natively; the bundled manifest intentionally has no released profile yet. No
-database, server, network transcription or new platform engine implementation is
-introduced.
+files. Native audio-only FFmpeg preparation is implemented behind
+`AudioPreparation`: strict local toolchain configuration, SHA-256 verification,
+capability self-test, a worker isolate with request-scoped cancellation, strict
+WAV validation and 24-hour job-scope expiry. Native FFI/WASM inference remains
+needed before end-to-end transcription. Trusted local artifact resolution,
+resumable model downloads and verification now exist natively; the bundled
+manifest intentionally has no released profile yet. No database, server, network
+transcription or new platform engine implementation is introduced.
 
 Run `flutter test --no-pub test/domain test/application test/platform` for the
 focused suite.

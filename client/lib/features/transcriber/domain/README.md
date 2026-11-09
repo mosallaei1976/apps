@@ -98,12 +98,12 @@ Factories now return this contract. NativeFfiEngine and WasmWebWorkerEngine rema
 explicitly unavailable stubs: initialize throws `unsupported`, load/transcribe
 reject with `notReady`, and neither reads audio nor fabricates inference output.
 The UI records through the injected `AudioCapture` port, then hands the opaque
-capture ID to the application coordinator for later preparation and inference.
-Windows microphone capture is implemented; FFmpeg preparation, real FFI/WASM
+capture ID to the application coordinator for preparation and inference. Windows
+microphone capture and native FFmpeg preparation are implemented; real FFI/WASM
 workers and their cancellation/backpressure conformance remain implementation
-work. See `../application/README.md`. Native model infrastructure now validates a
-trusted manifest, verifies installed artifacts with streaming SHA-256, and
-supports resumable downloads with atomic promotion
+work. See `../application/README.md` and `../../platform/audio/README.md`. Native
+model infrastructure validates a trusted manifest, verifies installed artifacts
+with streaming SHA-256, and supports resumable downloads with atomic promotion
 (`../../platform/models/README.md`). The bundled manifest is empty until a real
 artifact is pinned. The `cancelled` failure code is available for cooperative
 port cancellation; engine transcription cancellation remains a normal terminal
