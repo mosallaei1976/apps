@@ -79,7 +79,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text('Native FFI inference has not been implemented or validated.'),
+      find.textContaining('Whisper.cpp inference is not configured.'),
       findsOneWidget,
     );
     expect(capture.stoppedIds, ['capture-0']);

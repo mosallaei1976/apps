@@ -3,8 +3,10 @@ import 'dart:async';
 import '../features/transcriber/domain/engine/abstract_engine_interface.dart';
 
 final class NativeFfiEngine extends _UnavailableEngine {
-  NativeFfiEngine()
-      : super('Native FFI inference has not been implemented or validated.');
+  NativeFfiEngine([
+    super.reason =
+        'Native whisper.cpp inference is not configured in this build.',
+  ]);
 }
 
 final class WasmWebWorkerEngine extends _UnavailableEngine {
@@ -13,6 +15,8 @@ final class WasmWebWorkerEngine extends _UnavailableEngine {
 }
 
 abstract class _UnavailableEngine implements AbstractEngineInterface {
+  _UnavailableEngine(String reason) : _reason = reason;
+
   final String _reason;
   final StreamController<EngineStatus> _statuses =
       StreamController<EngineStatus>.broadcast();
@@ -20,8 +24,6 @@ abstract class _UnavailableEngine implements AbstractEngineInterface {
       StreamController<ModelLoadProgress>.broadcast();
   EngineStatus _status = EngineStatus.uninitialized;
   Future<void>? _disposal;
-
-  _UnavailableEngine(this._reason);
 
   @override
   EngineStatus get status => _status;

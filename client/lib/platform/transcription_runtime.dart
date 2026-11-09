@@ -7,9 +7,9 @@ import 'audio_preparation_factory.dart';
 import 'engine_factory.dart';
 import 'model_runtime.dart';
 
-/// Builds the current platform composition: a typed unavailable engine, the
-/// configured or explicitly unavailable audio-preparation adapter, and platform
-/// model verification.
+/// Builds the current platform composition: the configured native whisper.cpp
+/// engine (or an explicitly unavailable fallback), the configured or explicitly
+/// unavailable audio-preparation adapter, and platform model verification.
 TranscriptionCoordinator createTranscriptionCoordinator(Ref ref) {
   final engine = EngineFactory.createEngine();
   final audioPreparation = createPlatformAudioPreparation();
