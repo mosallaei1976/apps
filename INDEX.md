@@ -69,3 +69,16 @@ audio ports. Native inference and persistence remain planned.
   `<temp>/persian_transcriber/jobs/<jobId>/prepared.wav` audio. Pin real
   Fast/Balanced artifacts into the manifest only after license, size, hash and
   engine compatibility are validated. No FFI or deployed WASM exists yet.
+
+
+  # Persian Transcriber - Project Index & Status Handoff
+
+## Current Status (Step 3: WIP)
+- **Step 1 (Windows Microphone Capture):** Complete and verified. Uses `record_windows`, 16 kHz mono WAV.
+- **Step 2 (Real Audio-Only FFmpeg Preparation):** Complete and verified. Strict RIFF/WAVE validation, SHA-256 toolchain verification, atomic rename, and 24-hour stale sweeps. 155 tests passing.
+- **Step 3 (Bind whisper.cpp FFI):** In Progress / WIP. Native FFI bindings structure and worker isolate integration started.
+
+## Verification Command
+- `flutter test --no-pub` (Current baseline: 155 tests passing)
+- `flutter analyze --no-pub`
+
