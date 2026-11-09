@@ -71,8 +71,8 @@ The app provides two dedicated, verified model tiers tailored for mobile constra
 1. [x] Architectural domain boundaries, state coordination, and session lifecycles.
 2. [x] Trusted model manifest system with cryptographic SHA-256 verification and atomic storage.
 3. [x] Native audio capture pipeline (Windows foundation; mobile recording integration).
-4. [ ] Isolated audio-only FFmpeg normalization worker.
-5. [ ] Native `whisper.cpp` FFI engine integration for Android, iOS, and desktop targets.
+4. [x] Isolated audio-only FFmpeg normalization worker (verified local FFmpeg, strict WAV validation).
+5. [~] Native `whisper.cpp` FFI integration: typed bindings and a dedicated worker isolate are in place and pinned to the whisper.cpp v1.8.2 ABI; real libraries and models per target are not bundled yet.
 6. [ ] Local persistence layer (Isar) and export formatters (SRT/VTT).
 
 ---

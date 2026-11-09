@@ -456,10 +456,19 @@ Future<void> _runWhisperWorker(_WhisperWorkerBootstrap bootstrap) async {
         path: libraryPath,
         expectedSha256: expectedSha256,
       );
-      bindings = WhisperBindings.load(libraryPath);
+      final loaded = WhisperBindings.load(libraryPath);
+      // Reject a library whose struct layout does not match the pinned ABI
+      // before it can transcribe with the wrong language or offsets.
+      loaded.assertCompatibleLayout();
+      bindings = loaded;
       bootstrap.parent.send(_WorkerAck(requestId));
     } on EngineFailure catch (failure) {
       sendFailure(requestId, failure);
+    } on StateError catch (error) {
+      sendFailure(
+        requestId,
+        EngineFailure(EngineFailureCode.unsupported, error.message),
+      );
     } on Object {
       sendFailure(
         requestId,
@@ -713,11 +722,11 @@ Future<void> _transcribeInWorker({
           math.min<int>(chunkSamples, floats.length - start);
       final params = native.fullDefaultParams(WhisperBindings.samplingGreedy);
       params.language = languagePointer;
-      params.noContext = 1;
-      params.printProgress = 0;
-      params.printRealtime = 0;
-      params.printTimestamps = 0;
-      params.translate = 0;
+      params.noContext = true;
+      params.printProgress = false;
+      params.printRealtime = false;
+      params.printTimestamps = false;
+      params.translate = false;
 
       final result = native.full(
         nativeContext,

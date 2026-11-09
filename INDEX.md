@@ -1,10 +1,12 @@
 # Persian Transcriber: context index
 
 Repository root: apps/. Read `../AGENTS.md` first. The client UI is wired to the
-application coordinator through Riverpod; `flutter analyze` is clean and all 155
+application coordinator through Riverpod; `flutter analyze` is clean and all 178
 client tests pass. Native model management exists behind the verified-model port;
 Windows microphone capture and native FFmpeg audio preparation exist behind the
-audio ports. Native inference and persistence remain planned.
+audio ports. Native whisper.cpp FFI inference exists behind the engine port but
+the ABI is pinned to whisper.cpp v1.8.2 and no real library or model is bundled
+yet. Persistence remains planned.
 
 ## Structure
 - `client/lib/main.dart`: composition root and Riverpod provider overrides for the
@@ -65,20 +67,29 @@ audio ports. Native inference and persistence remain planned.
   `assets/models/manifest.json` is intentionally empty until a real artifact is
   pinned, so resolution reports `modelUnavailable`; web remains unavailable. See
   `client/lib/platform/models/README.md`.
-- Next priority: bind whisper.cpp FFI to the prepared
-  `<temp>/persian_transcriber/jobs/<jobId>/prepared.wav` audio. Pin real
-  Fast/Balanced artifacts into the manifest only after license, size, hash and
-  engine compatibility are validated. No FFI or deployed WASM exists yet.
+- Native whisper.cpp inference runs through FFI behind the engine port and
+  decodes the prepared
+  `<temp>/persian_transcriber/jobs/<jobId>/prepared.wav` audio in a dedicated
+  worker isolate. The library is enabled only by explicit local configuration
+  (`PERSIAN_TRANSCRIBER_WHISPER_PATH` and
+  `PERSIAN_TRANSCRIBER_WHISPER_SHA256`), is streamed through SHA-256 before
+  loading, and its `whisper_full_params` layout is pinned to the whisper.cpp
+  v1.8.2 ABI. A runtime check rejects a mismatched build rather than
+  transcribing with the wrong offsets. See
+  `client/lib/platform/whisper/README.md`.
+- Next priority: build and verify real whisper.cpp artifacts for each target,
+  then pin real Fast/Balanced models into the manifest only after license, size,
+  hash and engine compatibility are validated. No deployed WASM exists yet.
 
 
   # Persian Transcriber - Project Index & Status Handoff
 
 ## Current Status (Step 3: WIP)
 - **Step 1 (Windows Microphone Capture):** Complete and verified. Uses `record_windows`, 16 kHz mono WAV.
-- **Step 2 (Real Audio-Only FFmpeg Preparation):** Complete and verified. Strict RIFF/WAVE validation, SHA-256 toolchain verification, atomic rename, and 24-hour stale sweeps. 155 tests passing.
-- **Step 3 (Bind whisper.cpp FFI):** In Progress / WIP. Native FFI bindings structure and worker isolate integration started.
+- **Step 2 (Real Audio-Only FFmpeg Preparation):** Complete and verified. Strict RIFF/WAVE validation, SHA-256 toolchain verification, atomic rename, and 24-hour stale sweeps.
+- **Step 3 (Bind whisper.cpp FFI):** In Progress / WIP. Typed FFI bindings pinned to the whisper.cpp v1.8.2 ABI, a long-lived worker isolate that owns the native context, SHA-256 library verification, a runtime ABI compatibility check, and 30-second decode windows with between-window cancellation. No real library or model is bundled yet.
 
 ## Verification Command
-- `flutter test --no-pub` (Current baseline: 155 tests passing)
+- `flutter test --no-pub` (Current baseline: 178 tests passing)
 - `flutter analyze --no-pub`
 
