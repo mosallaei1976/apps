@@ -100,9 +100,13 @@ reject with `notReady`, and neither reads audio nor fabricates inference output.
 There are no engine callers in the current UI; its recording interaction is still
 a visual scaffold. The application coordinator now uses the audio-preparation and
 verified-model domain ports to resolve opaque IDs and manage job/cache lifecycle;
-see `../application/README.md`. The `cancelled` failure code is available for
-cooperative port cancellation; engine transcription cancellation remains a normal
-terminal event. Real FFI/WASM workers and their cancellation/backpressure conformance
-remain implementation work. Domain tests use a deterministic in-memory fixture
-to specify successful job, concurrency and cancellation behavior; they do not
-validate native inference or deployed WASM readiness.
+see `../application/README.md`. Native model infrastructure now validates a trusted
+manifest, verifies installed artifacts with streaming SHA-256, and supports
+resumable downloads with atomic promotion (`../../platform/models/README.md`). The
+bundled manifest is empty until a real artifact is pinned. The `cancelled` failure
+code is available for cooperative port cancellation; engine transcription
+cancellation remains a normal terminal event. Real FFI/WASM workers and their
+cancellation/backpressure conformance remain implementation work. Domain tests use
+a deterministic in-memory fixture to specify successful job, concurrency and
+cancellation behavior; they do not validate native inference or deployed WASM
+readiness.

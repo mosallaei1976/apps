@@ -2,17 +2,20 @@
 
 `TranscriptionCoordinator` depends only on the canonical engine and the two domain
 ports in `../domain/ports/`. Construct it with an engine, `AudioPreparation` and
-`VerifiedModelAccess`; no production preparation/model adapters exist yet. The
-existing platform factory still returns explicitly unavailable engines. No fake
-is wired into production and the current visual UI remains unchanged.
+`VerifiedModelAccess`. Native builds now inject the trusted-manifest adapter from
+`../../platform/models`; audio preparation and inference adapters remain
+unavailable. The existing platform factory still returns explicitly unavailable
+engines. No fake is wired into production and the current visual UI remains
+unchanged.
 
 ## Port obligations
 
 - `VerifiedModelAccess.resolveVerified` returns an exact compatible `ModelSpec`
   for the requested tier only after its local artifact has passed SHA-256
   verification against a trusted manifest. Missing/corrupt artifacts fail with
-  `EngineFailureCode.modelUnavailable`. This slice does not download models or
-  implement hashing; acquisition/resume and verification are infrastructure work.
+  `EngineFailureCode.modelUnavailable`. This slice does not download or hash
+  models; the native infrastructure in `../../platform/models` implements
+  manifest validation, resumable acquisition and verification behind the port.
 - `AudioPreparation.prepare` accepts an opaque source ID and a unique job scope.
   It standardizes audio using the required minimal audio-only FFmpeg build, then
   returns ordered, non-overlapping, contiguous speech chunks. Each `PreparedAudio`
@@ -85,9 +88,11 @@ belongs to the composition root, so coordinator disposal does not dispose it.
 
 Orchestration, leases, event forwarding/replacement, timestamp mapping and cleanup
 coordination are implemented and unit tested against controlled adapters. Real
-native FFI/WASM inference, audio-only FFmpeg preparation and worker cancellation,
-local verified-artifact resolution and production cache storage are still needed
-before UI integration. No database, server, network transcription or new platform
-implementation is introduced.
+native FFI/WASM inference, audio-only FFmpeg preparation and worker cancellation
+are still needed before UI integration. Trusted local artifact resolution,
+resumable model downloads and verification now exist natively; the bundled
+manifest intentionally has no released profile yet. No database, server, network
+transcription or new platform engine implementation is introduced.
 
-Run `flutter test --no-pub test/domain test/application` for the focused suite.
+Run `flutter test --no-pub test/domain test/application test/platform` for the
+focused suite.
