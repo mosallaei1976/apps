@@ -95,9 +95,28 @@ using it. The engine lease and UI flow that enforce that rule do not exist yet.
 - Measure verification time; resolution currently re-hashes the complete artifact
   on every job. Add a trusted, invalidated verification cache only if measurements
   justify it.
-- Add a model-management UI with size, progress, pause/resume, retry, switching,
-  deletion, cache usage and low-disk checks.
 - Implement the browser IndexedDB/blob equivalent; web builds still use
   `UnavailableVerifiedModelAccess`.
 - Run the startup sweep from the composition root once a job/cache lifecycle
   exists.
+
+## Model-management UI integration
+
+`LocalModelRepository` and `LocalModelDownloadService` implement the domain
+`ModelRepository` and `ModelDownloadService` ports. The application
+`ModelManagementController` consumes only those ports and exposes typed states:
+not downloaded, downloading (progress and measured speed), verifying SHA-256,
+paused, ready, error and unavailable. The Settings -> Model Management screen
+consumes only the application providers.
+
+- Initialization reads manifest identity and local install/partial state; it
+  never starts a download. Every download begins from an explicit button press.
+- Pause cancels the active attempt, which preserves `.part` and its validator
+  metadata; resume starts a new attempt that the existing downloader continues
+  with a Range request.
+- Delete removes the installed artifact and any resumable partial state.
+- Installed status shown in the UI is a cheap existence/size check. Full SHA-256
+  verification still happens after every download and again in
+  `LocalVerifiedModelAccess` before an engine may load the artifact.
+- Web builds inject explicit unavailable adapters and report a typed local
+  error; no server fallback exists.

@@ -6,6 +6,7 @@ import '../../../core/l10n/app_locale.dart';
 import '../application/transcription_job_event.dart';
 import '../domain/engine/engine_failure.dart';
 import '../domain/engine/engine_types.dart';
+import 'model_management_screen.dart';
 import 'transcription_providers.dart';
 import 'transcription_session_controller.dart';
 
@@ -26,6 +27,15 @@ class TranscriberScreen extends ConsumerWidget {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         actions: [
+          IconButton(
+            tooltip: AppStrings.settingsTitle(currentLang),
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const ModelManagementScreen(),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: 'تغییر زبان / Switch Language',
             icon: const Icon(Icons.language),

@@ -119,4 +119,88 @@ class AppStrings {
   static String copySuccess(AppLanguage lang) => lang == AppLanguage.persian
       ? 'متن در کلیپ‌بورد کپی شد.'
       : 'Text copied to clipboard.';
+
+  static String settingsTitle(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'تنظیمات' : 'Settings';
+
+  static String modelManagementTitle(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'مدیریت مدل‌ها' : 'Model Management';
+
+  static String modelManagementIntro(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'مدل‌ها فقط با انتخاب شما دانلود می‌شوند. پس از راه‌اندازی اولیه، رونویسی به‌صورت آفلاین انجام می‌شود.'
+          : 'Models download only when you choose. After initial setup, transcription runs offline.';
+
+  static String fastModel(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'مدل سریع' : 'Fast Model';
+
+  static String balancedModel(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'مدل متعادل' : 'Balanced Model';
+
+  static String fastModelDescription(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'دقت پایه، حجم کمتر، مناسب دستگاه‌های کم‌منبع'
+          : 'Base accuracy, smaller download, suited to low-resource devices';
+
+  static String balancedModelDescription(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'دقت بیشتر، حجم بزرگ‌تر'
+          : 'Higher accuracy, larger download';
+
+  static String approximateSize(int bytes) =>
+      '~${(bytes / 1000000).toStringAsFixed(0)} MB';
+
+  static String downloadModel(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'دانلود مدل' : 'Download Model';
+
+  static String pauseDownload(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'توقف' : 'Pause';
+
+  static String resumeDownload(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'ادامه' : 'Resume';
+
+  static String deleteModel(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'حذف مدل' : 'Delete Model';
+
+  static String retryDownload(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'تلاش دوباره' : 'Retry';
+
+  static String modelDownloading(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'در حال دانلود...' : 'Downloading...';
+
+  static String modelVerifying(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'در حال بررسی SHA-256...'
+      : 'Verifying SHA-256...';
+
+  static String modelReady(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'آماده' : 'Ready';
+
+  static String modelNotDownloaded(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'دانلود نشده' : 'Not downloaded';
+
+  static String modelPaused(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'متوقف شده' : 'Paused';
+
+  static String modelDownloadFailed(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'دانلود ناموفق بود' : 'Download failed';
+
+  static String modelUnavailable(AppLanguage lang) => lang == AppLanguage.persian
+      ? 'این مدل برای این پلتفرم در دسترس نیست.'
+      : 'This model is not available for this platform.';
+
+  static String modelManagementUnavailable(AppLanguage lang) =>
+      lang == AppLanguage.persian
+          ? 'دانلود مدل در این نسخه در دسترس نیست.'
+          : 'Model downloads are not available in this build.';
+
+  static String modelDeleteSuccess(AppLanguage lang) =>
+      lang == AppLanguage.persian ? 'مدل حذف شد.' : 'Model deleted.';
+
+  static String progressPercent(double fraction) =>
+      '${(fraction.clamp(0, 1) * 100).round()}%';
+
+  static String downloadSpeed(double bytesPerSecond) {
+    final megabytes = bytesPerSecond / 1000000;
+    return '${megabytes.toStringAsFixed(1)} MB/s';
+  }
 }

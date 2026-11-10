@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n/app_locale.dart';
 import 'core/theme/app_theme.dart';
+import 'features/transcriber/presentation/model_management_providers.dart';
 import 'features/transcriber/presentation/transcriber_screen.dart';
 import 'features/transcriber/presentation/transcription_providers.dart';
 import 'platform/audio_capture_runtime.dart';
+import 'platform/model_management_runtime.dart';
 import 'platform/transcription_runtime.dart';
 
 void main() {
@@ -17,6 +21,11 @@ void main() {
         transcriptionCoordinatorProvider
             .overrideWith(createTranscriptionCoordinator),
         audioCaptureProvider.overrideWith(createAudioCapture),
+        modelManagementBundleProvider.overrideWith((ref) {
+          final bundle = createModelManagementBundle();
+          ref.onDispose(() => unawaited(bundle.dispose()));
+          return bundle;
+        }),
       ],
       child: const PersianTranscriberApp(),
     ),

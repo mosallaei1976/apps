@@ -1,7 +1,7 @@
 # Persian Transcriber: context index
 
 Repository root: apps/. Read `../AGENTS.md` first. The client UI is wired to the
-application coordinator through Riverpod; `flutter analyze` is clean and all 178
+application coordinator through Riverpod; `flutter analyze` is clean and all 203
 client tests pass. Native model management exists behind the verified-model port;
 Windows microphone capture and native FFmpeg audio preparation exist behind the
 audio ports. Native whisper.cpp FFI inference exists behind the engine port but
@@ -64,6 +64,11 @@ yet. Persistence remains planned.
   is implemented natively: strict trusted-manifest parsing, streaming SHA-256
   verification of installed artifacts, resumable `.part` downloads with
   ETag/Last-Modified checks, cancellation and atomic promotion.
+  `ModelManagementController` exposes typed states (not downloaded, downloading
+  with progress/speed, verifying SHA-256, paused, ready, error, unavailable) and
+  the Settings -> Model Management screen offers explicit download, pause,
+  resume, retry and delete actions for the Fast/Balanced profiles. Initialization
+  only reads local state; no download starts without a user action.
   `assets/models/manifest.json` is intentionally empty until a real artifact is
   pinned, so resolution reports `modelUnavailable`; web remains unavailable. See
   `client/lib/platform/models/README.md`.
@@ -90,6 +95,6 @@ yet. Persistence remains planned.
 - **Step 3 (Bind whisper.cpp FFI):** In Progress / WIP. Typed FFI bindings pinned to the whisper.cpp v1.8.2 ABI, a long-lived worker isolate that owns the native context, SHA-256 library verification, a runtime ABI compatibility check, and 30-second decode windows with between-window cancellation. No real library or model is bundled yet.
 
 ## Verification Command
-- `flutter test --no-pub` (Current baseline: 178 tests passing)
+- `flutter test --no-pub` (Current baseline: 203 tests passing)
 - `flutter analyze --no-pub`
 
