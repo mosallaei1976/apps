@@ -39,7 +39,7 @@ ModelArtifact artifactFixture({
   String id = 'whisper-base-q5',
   ModelTier tier = ModelTier.fast,
   ModelFamily? family,
-  ModelQuantization quantization = ModelQuantization.q5K,
+  ModelQuantization quantization = ModelQuantization.q5_1,
   String version = '1.0.0',
   required int byteLength,
   required String sha256,
@@ -65,8 +65,10 @@ Map<String, Object?> artifactJson(ModelArtifact artifact) => {
       'id': artifact.id,
       'tier': artifact.tier.name,
       'family': artifact.family.name,
-      'quantization':
-          artifact.quantization == ModelQuantization.q5K ? 'q5_k' : 'int8',
+      'quantization': switch (artifact.quantization) {
+        ModelQuantization.q8_0 => 'q8_0',
+        ModelQuantization.q5_1 => 'q5_1',
+      },
       'version': artifact.version,
       'byteLength': artifact.byteLength,
       'sha256': artifact.sha256,

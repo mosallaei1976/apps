@@ -101,4 +101,20 @@ void main() {
           .having((error) => error.code, 'code', EngineFailureCode.cancelled)),
     );
   });
+
+  test('rejects a tampered file against the real bundled manifest', () async {
+    final source = await File('assets/models/manifest.json').readAsString();
+    final manifest = ModelManifest.parse(source);
+    final fast = manifest.artifactFor(ModelTier.fast, ModelEngine.nativeFfi)!;
+    final installed = await storage.modelFile(fast.id);
+    await installed.parent.create(recursive: true);
+    await installed.writeAsBytes(List.filled(4096, 0), flush: true);
+
+    await expectLater(
+      access(manifest: source)
+          .resolveVerified(ModelTier.fast, cancellation: TestCancellation()),
+      throwsA(isA<EngineFailure>().having(
+          (error) => error.code, 'code', EngineFailureCode.modelUnavailable)),
+    );
+  });
 }

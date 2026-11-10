@@ -18,10 +18,14 @@ downloads are deliberately separated: job-cache cleanup must not remove either.
 
 ## Trusted manifest
 
-`assets/models/manifest.json` is the only trusted source of model identity. The
-bundled file is intentionally empty until a real artifact has been pinned,
-licensed, measured and tested with the selected engine build. Do not add an entry
-from a guessed URL, size or hash.
+`assets/models/manifest.json` is the only trusted source of model identity.
+`client/tool/model_pins.json` is the operator source of truth; the manifest is
+regenerated from it by `client/tool/fetch_models.ps1`. Do not add an entry from a
+guessed URL, size or hash.
+
+The pinned artifacts are whisper.cpp GGML files (not GGUF). whisper.cpp v1.8.2
+loads GGML `.bin` files; GGUF is a different container and is not accepted by
+this engine.
 
 Illustrative schema version 1 shape (every value below is a placeholder; the
 bundled manifest must not contain an entry until it is real):
@@ -31,12 +35,12 @@ bundled manifest must not contain an entry until it is real):
   "schemaVersion": 1,
   "models": [
     {
-      "id": "whisper-base-q5",
+      "id": "whisper-base-q8-0",
       "tier": "fast",
       "family": "base",
-      "quantization": "q5_k",
-      "version": "1.0.0",
-      "byteLength": 1,
+      "quantization": "q8_0",
+      "version": "1.8.2",
+      "byteLength": 81768585,
       "sha256": "<64 lowercase hex characters>",
       "source": "https://<pinned artifact URL>",
       "license": "<artifact license>",
@@ -51,7 +55,8 @@ Rules enforced by `ModelManifest.parse`:
 - `schemaVersion` must be `1`.
 - `tier` is `fast` or `balanced`; `family` is `base` or `small`; fast must be
   Base-based and balanced must be Small-based.
-- `quantization` is `int8` or `q5_k`. They are distinct formats, not aliases.
+- `quantization` is `q8_0` or `q5_1`, matching whisper.cpp's quantize tool.
+  Legacy `int8`/`q5_k` labels are rejected instead of being silently mapped.
 - `byteLength` is the exact artifact size and `sha256` the exact digest.
 - `source` must be `https`.
 - At most one artifact per `(tier, engine)` profile and unique artifact IDs.
@@ -88,10 +93,20 @@ interface; `DartModelDownloadTransport` is the native `dart:io` adapter.
 Callers must not delete or replace an artifact while an engine is loading or
 using it. The engine lease and UI flow that enforce that rule do not exist yet.
 
+## Pinned artifacts
+
+| Profile | Artifact | Bytes | Quantization |
+| --- | --- | --- | --- |
+| Fast | `ggml-base-q8_0.bin` | 81,768,585 | Q8_0 |
+| Balanced | `ggml-small-q5_1.bin` | 190,085,487 | Q5_1 |
+
+Both are standard multilingual OpenAI Whisper weights converted by whisper.cpp,
+published in `ggerganov/whisper.cpp` under MIT. They are not Persian-trained
+custom models. The URLs are pinned to the immutable repository revision
+`5359861c739e955e79d9a303bcbc70fb988958b1`.
+
 ## Remaining work
 
-- Pin and validate real Fast/Balanced artifacts, including licenses and exact
-  sizes, before adding manifest entries.
 - Measure verification time; resolution currently re-hashes the complete artifact
   on every job. Add a trusted, invalidated verification cache only if measurements
   justify it.

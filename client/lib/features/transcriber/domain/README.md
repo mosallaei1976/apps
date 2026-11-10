@@ -11,8 +11,9 @@ interface. The domain has no Flutter, filesystem, FFI, WASM or platform imports.
 `initialize()` initializes the engine runtime; `loadModel(ModelSpec)` separately
 loads an already acquired, verified artifact identified by an opaque `artifactId`.
 Fast is quantized multilingual Base (~80 MB); balanced is quantized multilingual
-Small (~200 MB), with INT8 and q5_k represented as distinct quantizations. Sizes
-are approximate product targets, not manifest sizes or RAM estimates. Artifact
+Small (~200 MB), with Q8_0 and Q5_1 represented as distinct whisper.cpp
+quantizations. Sizes are approximate product targets, not manifest sizes or RAM
+estimates. Artifact
 resolution, compatibility, download/resume and SHA-256 verification stay in
 infrastructure; model loading must never start a download.
 
@@ -104,8 +105,8 @@ workers and their cancellation/backpressure conformance remain implementation
 work. See `../application/README.md` and `../../platform/audio/README.md`. Native
 model infrastructure validates a trusted manifest, verifies installed artifacts
 with streaming SHA-256, and supports resumable downloads with atomic promotion
-(`../../platform/models/README.md`). The bundled manifest is empty until a real
-artifact is pinned. The `cancelled` failure code is available for cooperative
+(`../../platform/models/README.md`). The bundled manifest pins the verified Fast
+and Balanced GGML artifacts. The `cancelled` failure code is available for cooperative
 port cancellation; engine transcription cancellation remains a normal terminal
 event. Domain tests use a deterministic in-memory fixture to specify successful
 job, concurrency and cancellation behavior; they do not validate native

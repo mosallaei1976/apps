@@ -195,10 +195,10 @@ T _enumValue<T extends Enum>(List<T> values, Object? raw, String where) {
 }
 
 ModelQuantization _quantization(Object? raw, String where) => switch (raw) {
-      'int8' => ModelQuantization.int8,
-      'q5_k' => ModelQuantization.q5K,
+      'q8_0' => ModelQuantization.q8_0,
+      'q5_1' => ModelQuantization.q5_1,
       _ => throw FormatException(
-          '$where has an unsupported value; expected int8 or q5_k.'),
+          '$where has an unsupported value; expected q8_0 or q5_1.'),
     };
 
 final _artifactIdPattern = RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$');

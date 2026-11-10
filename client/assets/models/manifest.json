@@ -1,4 +1,29 @@
 {
   "schemaVersion": 1,
-  "models": []
+  "models": [
+    {
+      "id": "whisper-base-q8-0",
+      "tier": "fast",
+      "family": "base",
+      "quantization": "q8_0",
+      "version": "1.8.2",
+      "byteLength": 81768585,
+      "sha256": "c577b9a86e7e048a0b7eada054f4dd79a56bbfa911fbdacf900ac5b567cbb7d9",
+      "source": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base-q8_0.bin",
+      "license": "MIT",
+      "engines": ["nativeFfi"]
+    },
+    {
+      "id": "whisper-small-q5-1",
+      "tier": "balanced",
+      "family": "small",
+      "quantization": "q5_1",
+      "version": "1.8.2",
+      "byteLength": 190085487,
+      "sha256": "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+      "source": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small-q5_1.bin",
+      "license": "MIT",
+      "engines": ["nativeFfi"]
+    }
+  ]
 }

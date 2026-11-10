@@ -11,13 +11,13 @@ void main() {
   final fast = ModelProfile(
     tier: ModelTier.fast,
     byteLength: 80000000,
-    quantization: ModelQuantization.q5K,
+    quantization: ModelQuantization.q5_1,
     version: '1.0.0',
   );
   final balanced = ModelProfile(
     tier: ModelTier.balanced,
     byteLength: 200000000,
-    quantization: ModelQuantization.q5K,
+    quantization: ModelQuantization.q5_1,
     version: '1.0.0',
   );
 

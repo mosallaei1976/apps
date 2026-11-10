@@ -52,6 +52,31 @@ offsets (`language` at 104, the v1.8.1 prompt fields at 80/88/96, the decoding
 tail at 264/272) and the minimum native size (304 bytes on x64). Update that
 test deliberately whenever the target ABI changes.
 
+## Android build pipeline
+
+`client/tool/build_whisper_android.ps1` produces `libwhisper.so` for
+`arm64-v8a` and `armeabi-v7a` from the pinned whisper.cpp tag `v1.8.2`
+(commit `4979e04f5dcaccb36057e059bbaed8a2f5288315`). It requires an installed
+Android NDK, CMake and Ninja; it never downloads a prebuilt library and never
+runs during application startup or tests.
+
+The script:
+
+- clones or checks out the pinned commit and fails if `HEAD` differs;
+- builds `libwhisper.so` with `BUILD_SHARED_LIBS=ON` for each ABI;
+- compiles `client/tool/abi/whisper_layout_probe.c` against the v1.8.2
+  `whisper.h` for each ABI, so a changed `whisper_full_params` offset fails the
+  build instead of producing a silently wrong library;
+- checks the ELF machine and required exported symbols;
+- copies the libraries to `android/app/src/main/jniLibs/<abi>/libwhisper.so`
+  and writes `whisper-artifacts.json` with exact sizes and SHA-256 digests.
+
+`client/tool/verify_whisper_android.ps1` re-verifies the copied artifacts against
+that metadata. The runtime still requires an explicit
+`PERSIAN_TRANSCRIBER_WHISPER_PATH`/`PERSIAN_TRANSCRIBER_WHISPER_SHA256`
+configuration on desktop; Android bundled-library discovery is a separate,
+not-yet-implemented milestone.
+
 ## Audio input
 
 Inference accepts only the canonical prepared file produced by the FFmpeg
@@ -69,8 +94,8 @@ mid-decode; a cancel request bounded by the current window finishes with
 
 ## Remaining work
 
-- Build and pin real `whisper.dll` artifacts (and Android/iOS/macOS binaries)
-  for every target, then record their exact digests in the operator setup.
+- Run the Android build pipeline on a machine with the NDK and record the
+  resulting digests; build and pin desktop/iOS/macOS binaries separately.
 - Decide whether to enable GPU or flash attention per platform; the current
   bindings round-trip the library defaults for `whisper_context_params`.
 - Add an integration test against a small pinned model plus a known fixture

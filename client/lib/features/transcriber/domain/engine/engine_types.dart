@@ -1,3 +1,6 @@
+// whisper.cpp quantization names are part of the trusted manifest schema.
+// ignore_for_file: constant_identifier_names
+
 enum EngineStatus {
   uninitialized,
   initialized,
@@ -11,14 +14,18 @@ enum EngineStatus {
 
 enum ModelTier { fast, balanced }
 
-enum ModelQuantization { int8, q5K }
+/// Quantization formats produced by whisper.cpp's `quantize` tool.
+///
+/// These names mirror the upstream artifact names (`q8_0`, `q5_1`) so the
+/// manifest cannot silently relabel one format as another.
+enum ModelQuantization { q8_0, q5_1 }
 
 final class ModelSpec {
   ModelSpec({
     required String id,
     required this.tier,
     required String artifactId,
-    this.quantization = ModelQuantization.q5K,
+    this.quantization = ModelQuantization.q5_1,
   })  : id = _requireId(id, 'id'),
         artifactId = _requireId(artifactId, 'artifactId');
 

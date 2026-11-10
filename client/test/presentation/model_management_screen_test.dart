@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:client/core/l10n/app_locale.dart';
 import 'package:client/core/theme/app_theme.dart';
 import 'package:client/features/transcriber/domain/engine/engine_failure.dart';
@@ -5,6 +7,7 @@ import 'package:client/features/transcriber/domain/engine/engine_types.dart';
 import 'package:client/features/transcriber/domain/ports/model_management.dart';
 import 'package:client/features/transcriber/presentation/model_management_providers.dart';
 import 'package:client/features/transcriber/presentation/model_management_screen.dart';
+import 'package:client/platform/models/model_manifest.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,13 +18,13 @@ void main() {
   final fast = ModelProfile(
     tier: ModelTier.fast,
     byteLength: 80000000,
-    quantization: ModelQuantization.q5K,
+    quantization: ModelQuantization.q5_1,
     version: '1.0.0',
   );
   final balanced = ModelProfile(
     tier: ModelTier.balanced,
     byteLength: 200000000,
-    quantization: ModelQuantization.q5K,
+    quantization: ModelQuantization.q5_1,
     version: '1.0.0',
   );
 
@@ -42,7 +45,7 @@ void main() {
       );
 
   Widget buildScreen({
-    required FakeModelRepository repository,
+    required ModelRepository repository,
     required FakeModelDownloadService service,
     AppLanguage language = AppLanguage.persian,
   }) {
@@ -217,6 +220,49 @@ void main() {
 
     expect(find.text('Fast Model'), findsOneWidget);
     expect(find.text('Balanced Model'), findsOneWidget);
+    expect(find.text('Download Model'), findsNWidgets(2));
+  });
+
+  testWidgets('renders the real bundled manifest profiles', (tester) async {
+    final manifest = ModelManifest.parse(
+      File('assets/models/manifest.json').readAsStringSync(),
+    );
+    ModelProfile profileFor(ModelTier tier) {
+      final artifact = manifest.artifactFor(tier, ModelEngine.nativeFfi)!;
+      return ModelProfile(
+        tier: artifact.tier,
+        byteLength: artifact.byteLength,
+        quantization: artifact.quantization,
+        version: artifact.version,
+      );
+    }
+
+    final fast = profileFor(ModelTier.fast);
+    final balanced = profileFor(ModelTier.balanced);
+    final repository = FakeModelRepository(
+      profiles: [fast, balanced],
+      installations: {
+        ModelTier.fast: ModelInstallation(profile: fast, installed: false),
+        ModelTier.balanced:
+            ModelInstallation(profile: balanced, installed: false),
+      },
+    );
+
+    await tester.pumpWidget(
+      buildScreen(
+        repository: repository,
+        service: FakeModelDownloadService(),
+        language: AppLanguage.english,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fast Model'), findsOneWidget);
+    expect(find.text('Balanced Model'), findsOneWidget);
+    expect(find.textContaining('~82 MB'), findsOneWidget);
+    expect(find.textContaining('~190 MB'), findsOneWidget);
+    expect(find.textContaining('Q8_0'), findsOneWidget);
+    expect(find.textContaining('Q5_1'), findsOneWidget);
     expect(find.text('Download Model'), findsNWidgets(2));
   });
 }

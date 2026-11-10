@@ -34,7 +34,7 @@ void main() {
     expect(spec.id, artifact.id);
     expect(spec.artifactId, artifact.id);
     expect(spec.tier, ModelTier.fast);
-    expect(spec.quantization, ModelQuantization.q5K);
+    expect(spec.quantization, ModelQuantization.q5_1);
   });
 
   test('normalizes the SHA-256 digest to lowercase', () {
@@ -48,10 +48,67 @@ void main() {
     expect(manifest.models.single.sha256, 'a' * 64);
   });
 
-  test('bundled manifest stays valid and intentionally empty', () async {
+  test('bundled manifest pins the released Fast and Balanced profiles',
+      () async {
     final source = await File('assets/models/manifest.json').readAsString();
+    final manifest = ModelManifest.parse(source);
 
-    expect(ModelManifest.parse(source).models, isEmpty);
+    expect(manifest.models, hasLength(2));
+    final fast = manifest.artifactFor(ModelTier.fast, ModelEngine.nativeFfi)!;
+    expect(fast.id, 'whisper-base-q8-0');
+    expect(fast.family, ModelFamily.base);
+    expect(fast.quantization, ModelQuantization.q8_0);
+    expect(fast.byteLength, 81768585);
+    expect(fast.sha256,
+        'c577b9a86e7e048a0b7eada054f4dd79a56bbfa911fbdacf900ac5b567cbb7d9');
+    expect(fast.license, 'MIT');
+    expect(fast.source.host, 'huggingface.co');
+    expect(fast.source.path, contains('/ggml-base-q8_0.bin'));
+
+    final balanced =
+        manifest.artifactFor(ModelTier.balanced, ModelEngine.nativeFfi)!;
+    expect(balanced.id, 'whisper-small-q5-1');
+    expect(balanced.family, ModelFamily.small);
+    expect(balanced.quantization, ModelQuantization.q5_1);
+    expect(balanced.byteLength, 190085487);
+    expect(balanced.sha256,
+        'ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb');
+    expect(balanced.license, 'MIT');
+    expect(balanced.source.path, contains('/ggml-small-q5_1.bin'));
+
+    expect(
+        manifest.artifactFor(ModelTier.fast, ModelEngine.wasmWorker), isNull);
+    expect(manifest.artifactFor(ModelTier.balanced, ModelEngine.wasmWorker),
+        isNull);
+  });
+
+  test('bundled manifest matches the pinned model source of truth', () async {
+    final pins = jsonDecode(
+      await File('tool/model_pins.json').readAsString(),
+    ) as Map<String, dynamic>;
+    final upstream = pins['upstream']! as Map<String, dynamic>;
+    final models = pins['models']! as List<dynamic>;
+    final manifest = ModelManifest.parse(
+      await File('assets/models/manifest.json').readAsString(),
+    );
+
+    expect(manifest.models, hasLength(models.length));
+    for (final raw in models) {
+      final pin = raw! as Map<String, dynamic>;
+      final tier = ModelTier.values.singleWhere(
+        (value) => value.name == pin['tier'],
+      );
+      final artifact = manifest.artifactFor(tier, ModelEngine.nativeFfi)!;
+      expect(artifact.id, pin['id']);
+      expect(artifact.byteLength, pin['byteLength']);
+      expect(artifact.sha256, pin['sha256']);
+      expect(artifact.license, pin['license']);
+      expect(
+        artifact.source.toString(),
+        'https://huggingface.co/${upstream['repository']}/resolve/'
+        '${upstream['revision']}/${pin['file']}',
+      );
+    }
   });
 
   test('rejects unsupported schema versions', () {
@@ -141,5 +198,19 @@ void main() {
       })),
       throwsA(isA<FormatException>()),
     );
+  });
+
+  test('rejects legacy or unknown quantization labels', () {
+    for (final label in ['int8', 'q5_k', 'q4_0']) {
+      final entry = artifactJson(artifact)..['quantization'] = label;
+      expect(
+        () => ModelManifest.parse(jsonEncode({
+          'schemaVersion': 1,
+          'models': [entry],
+        })),
+        throwsA(isA<FormatException>()),
+        reason: 'quantization $label must fail closed',
+      );
+    }
   });
 }

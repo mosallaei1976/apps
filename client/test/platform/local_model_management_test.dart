@@ -81,7 +81,7 @@ void main() {
     ]);
     expect(profiles.first.byteLength, 128);
     expect(profiles.last.byteLength, 256);
-    expect(profiles.first.quantization, ModelQuantization.q5K);
+    expect(profiles.first.quantization, ModelQuantization.q5_1);
   });
 
   test('reports installed artifacts and resumable partial bytes', () async {

@@ -15,8 +15,7 @@ class ModelManagementScreen extends ConsumerStatefulWidget {
       _ModelManagementScreenState();
 }
 
-class _ModelManagementScreenState
-    extends ConsumerState<ModelManagementScreen> {
+class _ModelManagementScreenState extends ConsumerState<ModelManagementScreen> {
   @override
   void initState() {
     super.initState();
@@ -127,8 +126,9 @@ class _ModelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isFast = _tier == ModelTier.fast;
-    final title =
-        isFast ? AppStrings.fastModel(language) : AppStrings.balancedModel(language);
+    final title = isFast
+        ? AppStrings.fastModel(language)
+        : AppStrings.balancedModel(language);
     final description = isFast
         ? AppStrings.fastModelDescription(language)
         : AppStrings.balancedModelDescription(language);
@@ -162,7 +162,8 @@ class _ModelCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         description,
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -274,7 +275,8 @@ class _ModelCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   AppStrings.modelReady(language),
-                  style: const TextStyle(fontSize: 13, color: Colors.tealAccent),
+                  style:
+                      const TextStyle(fontSize: 13, color: Colors.tealAccent),
                 ),
               ),
               OutlinedButton.icon(
@@ -314,8 +316,8 @@ class _ModelCard extends StatelessWidget {
 
   static String _quantizationLabel(ModelQuantization quantization) =>
       switch (quantization) {
-        ModelQuantization.int8 => 'INT8',
-        ModelQuantization.q5K => 'Q5_K',
+        ModelQuantization.q8_0 => 'Q8_0',
+        ModelQuantization.q5_1 => 'Q5_1',
       };
 }
 

@@ -46,11 +46,11 @@ void main() {
         id: 'small-int8-v1',
         tier: ModelTier.balanced,
         artifactId: 'verified-small-int8-v1',
-        quantization: ModelQuantization.int8,
+        quantization: ModelQuantization.q8_0,
       );
-      expect(base.quantization, ModelQuantization.q5K);
+      expect(base.quantization, ModelQuantization.q5_1);
       expect(base.approximateDownloadBytes, 80000000);
-      expect(small.quantization, ModelQuantization.int8);
+      expect(small.quantization, ModelQuantization.q8_0);
       expect(small.approximateDownloadBytes, 200000000);
     });
 

@@ -1,12 +1,13 @@
 # Persian Transcriber: context index
 
 Repository root: apps/. Read `../AGENTS.md` first. The client UI is wired to the
-application coordinator through Riverpod; `flutter analyze` is clean and all 203
+application coordinator through Riverpod; `flutter analyze` is clean and all 214
 client tests pass. Native model management exists behind the verified-model port;
 Windows microphone capture and native FFmpeg audio preparation exist behind the
-audio ports. Native whisper.cpp FFI inference exists behind the engine port but
-the ABI is pinned to whisper.cpp v1.8.2 and no real library or model is bundled
-yet. Persistence remains planned.
+audio ports. Native whisper.cpp FFI inference exists behind the engine port and
+the ABI is pinned to whisper.cpp v1.8.2. The trusted manifest now pins verified
+Fast/Balanced GGML artifacts, but no native shared library is bundled yet and
+persistence remains planned.
 
 ## Structure
 - `client/lib/main.dart`: composition root and Riverpod provider overrides for the
@@ -29,6 +30,10 @@ yet. Persistence remains planned.
 - `client/test/`: domain/application contracts, platform adapters (models,
   Windows capture, WAV parsing, FFmpeg runner/toolchain and preparation worker),
   presentation/controller tests and widget smoke tests.
+- `client/tool/`: operator-only offline artifact pipeline. `model_pins.json` is
+  the model source of truth; `fetch_models.ps1` verifies exact sizes/SHA-256 and
+  regenerates the manifest; `build_whisper_android.ps1` builds and probes
+  `libwhisper.so` for `arm64-v8a`/`armeabi-v7a`.
 - `landing/`: static pre-release page. `graphify-out/`: skip for routine context.
 
 ## Status and boundaries
@@ -69,9 +74,11 @@ yet. Persistence remains planned.
   the Settings -> Model Management screen offers explicit download, pause,
   resume, retry and delete actions for the Fast/Balanced profiles. Initialization
   only reads local state; no download starts without a user action.
-  `assets/models/manifest.json` is intentionally empty until a real artifact is
-  pinned, so resolution reports `modelUnavailable`; web remains unavailable. See
-  `client/lib/platform/models/README.md`.
+  `assets/models/manifest.json` pins the verified Fast (`ggml-base-q8_0.bin`,
+  81,768,585 bytes) and Balanced (`ggml-small-q5_1.bin`, 190,085,487 bytes)
+  artifacts at an immutable Hugging Face revision, so the controller resolves
+  both profiles as not downloaded instead of `modelUnavailable`; web remains
+  unavailable. See `client/lib/platform/models/README.md`.
 - Native whisper.cpp inference runs through FFI behind the engine port and
   decodes the prepared
   `<temp>/persian_transcriber/jobs/<jobId>/prepared.wav` audio in a dedicated
@@ -82,9 +89,9 @@ yet. Persistence remains planned.
   v1.8.2 ABI. A runtime check rejects a mismatched build rather than
   transcribing with the wrong offsets. See
   `client/lib/platform/whisper/README.md`.
-- Next priority: build and verify real whisper.cpp artifacts for each target,
-  then pin real Fast/Balanced models into the manifest only after license, size,
-  hash and engine compatibility are validated. No deployed WASM exists yet.
+- Next priority: run `client/tool/build_whisper_android.ps1` on a machine with
+  an Android NDK, then build and pin desktop/iOS/macOS libraries. Android
+  bundled-library discovery and deployed WASM remain unimplemented.
 
 
   # Persian Transcriber - Project Index & Status Handoff
@@ -92,9 +99,9 @@ yet. Persistence remains planned.
 ## Current Status (Step 3: WIP)
 - **Step 1 (Windows Microphone Capture):** Complete and verified. Uses `record_windows`, 16 kHz mono WAV.
 - **Step 2 (Real Audio-Only FFmpeg Preparation):** Complete and verified. Strict RIFF/WAVE validation, SHA-256 toolchain verification, atomic rename, and 24-hour stale sweeps.
-- **Step 3 (Bind whisper.cpp FFI):** In Progress / WIP. Typed FFI bindings pinned to the whisper.cpp v1.8.2 ABI, a long-lived worker isolate that owns the native context, SHA-256 library verification, a runtime ABI compatibility check, and 30-second decode windows with between-window cancellation. No real library or model is bundled yet.
+- **Step 3 (Bind whisper.cpp FFI):** In Progress / WIP. Typed FFI bindings pinned to the whisper.cpp v1.8.2 ABI, a long-lived worker isolate that owns the native context, SHA-256 library verification, a runtime ABI compatibility check, and 30-second decode windows with between-window cancellation. The manifest now pins verified Fast/Balanced GGML models; the Android build/probe pipeline exists but no built `libwhisper.so` is bundled yet.
 
 ## Verification Command
-- `flutter test --no-pub` (Current baseline: 203 tests passing)
+- `flutter test --no-pub` (Current baseline: 214 tests passing)
 - `flutter analyze --no-pub`
 
